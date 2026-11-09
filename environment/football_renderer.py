@@ -19,6 +19,7 @@ class FootballRenderer:
     WHITE = (245, 249, 250)
     MUTED = (175, 194, 200)
     BLUE = (55, 145, 242)
+    RED = (230, 85, 77)
     YELLOW = (254, 217, 103)
 
     def __init__(self, width=7, height=5):
@@ -112,6 +113,41 @@ class FootballRenderer:
         player_label = self.font.render("P", True, self.WHITE)
         self.screen.blit(player_label, player_label.get_rect(center=center))
 
+
+        # Draw the blue player
+        center = self._cell_center(game.player_pos)
+        pygame.draw.circle(self.screen, (16, 52, 77), (center[0] + 3, center[1] + 4), 20)
+        pygame.draw.circle(self.screen, self.BLUE, center, 19)
+        pygame.draw.circle(self.screen, self.WHITE, center, 19, 2)
+        player_label = self.font.render("P", True, self.WHITE)
+        self.screen.blit(player_label, player_label.get_rect(center=center))
+
+        # NEW: Draw the red defender
+        defender_pos = getattr(game, "defender_pos", None)
+
+        if defender_pos is not None:
+            dc = self._cell_center(defender_pos)
+
+            pygame.draw.circle(
+                self.screen, (90, 30, 30),
+                (dc[0] + 3, dc[1] + 4), 20
+            )
+            pygame.draw.circle(self.screen, self.RED, dc, 19)
+            pygame.draw.circle(self.screen, self.WHITE, dc, 19, 2)
+
+            defender_label = self.font.render("D", True, self.WHITE)
+            self.screen.blit(
+                defender_label,
+                defender_label.get_rect(center=dc)
+            )
+
+        # Existing code: Draw the ball
+        if game.has_ball:
+            ball_center = (center[0] + 18, center[1] + 18)
+        else:
+            ball_center = self._cell_center(game.ball_pos)
+
+
         if game.has_ball:
             ball_center = (center[0] + 18, center[1] + 18)
         else:
@@ -127,7 +163,14 @@ class FootballRenderer:
             (self.MARGIN_X, bottom_y), self.WHITE, self.small_font,
         )
         if finished:
-            message = "GOAL! Press R to play again" if event == "goal" else "TIME UP! Press R to restart"
+            messages = {
+                "goal": "GOAL! Press R to play again",
+                "tackled": "TACKLED! Press R to try again",
+                "time_limit": "TIME UP! Press R to restart",
+            }
+            message = messages.get(
+                event, "Episode over! Press R to restart"
+            )
             self._label(message, (self.MARGIN_X, bottom_y + 28), self.YELLOW, self.small_font)
         else:
             self._label(
