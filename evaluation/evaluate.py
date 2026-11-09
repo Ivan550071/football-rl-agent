@@ -121,7 +121,7 @@ def show_example_match(env, agent):
 
 
 def main():
-    env = FootballEnv()
+    env = FootballEnv(random_start=True, seed=123)
     agent = load_agent(env)
 
     # Fix random seeds so both evaluations can be reproduced.

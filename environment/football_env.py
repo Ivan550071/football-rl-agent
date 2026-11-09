@@ -3,7 +3,7 @@
 No third-party packages required. Its reset/step signatures follow the
 Gymnasium convention, but this class is not yet a Gymnasium Env subclass.
 """
-
+import random
 
 class FootballEnv:
     # Actions are integers so they can later index a Q-table.
@@ -21,7 +21,7 @@ class FootballEnv:
         RIGHT: (1, 0),
     }
 
-    def __init__(self, max_steps=60):
+    def __init__(self, max_steps=60, random_start=False, seed=None):
         if max_steps < 1:
             raise ValueError("max_steps must be at least 1")
 
@@ -33,6 +33,17 @@ class FootballEnv:
         self.max_steps = max_steps
         self.n_actions = len(self.ACTION_NAMES)
 
+        #Random starting positions
+        self.random_start = random_start
+        self.rng = random.Random(seed)
+
+        self.start_positions = [
+            (x, y)
+            for x in range(self.width)
+            for y in range(self.height)
+            if (x, y) not in (self.ball_pos, self.goal_pos)
+        ]
+
         self.reset()
 
     def _get_state(self):
@@ -42,7 +53,12 @@ class FootballEnv:
 
     def reset(self):
         """Start a new episode. Returns (state, info)."""
-        self.player_pos = self.start_pos
+        
+        if self.random_start:
+            self.player_pos = self.rng.choice(self.start_positions)
+        else:
+            self.player_pos = self.start_pos
+        
         self.has_ball = False
         self.steps = 0
         self.finished = False
